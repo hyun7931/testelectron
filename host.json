@@ -1,0 +1,9 @@
+{
+  "name": "com.test.electron",
+  "description": "Test Native Host",
+  "path": "C:\\node-test\\electron-host\\host.js",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://EXTENSION_ID/"
+  ]
+}
