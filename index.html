@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <html>
-<body>
-    <h2>리모컨 앱</h2>
-    <input type="text" id="urlInput" value="https://www.google.com" style="width: 100%;">
-    <br><br>
-    <button id="btn" style="width: 100%; height: 50px;">크롬에서 열기</button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Widget</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="renderer.js"></script>
+  </head>
+  <body>
+    <div class="hover-zone">
+      <div id="wrapper" class="wrapper drag">
+        <!-- 기준 아이콘 (anchor) -->
 
-    <script>
-        const { ipcRenderer } = require('electron');
-        
-        document.getElementById('btn').addEventListener('click', () => {
-            const url = document.getElementById('urlInput').value;
-            ipcRenderer.send('trigger-chrome', url);
-        });
-    </script>
-</body>
+        <!-- 패널: 아래부터 +, 그 위로 신호등 -->
+        <div id="widget" class="panel">
+          <button id="toggleBtn" class="plus no-drag">+</button>
+
+          <button id="btn" class="dot red no-drag">크롬</button>
+          <button class="dot yellow no-drag"></button>
+          <button class="dot green no-drag"></button>
+        </div>
+
+        <div id="collapsedIcon" class="collapsed-icon no-drag"></div>
+      </div>
+    </div>
+  </body>
 </html>
