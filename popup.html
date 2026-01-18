@@ -20,14 +20,14 @@
   </head>
   <body>
     <input id="urlInput" value="https://www.google.com" />
-    <button id="submitBtn">열기</button>
+    <button id="submitBtn">등록</button>
 
     <script>
       const { ipcRenderer } = require("electron");
 
       document.getElementById("submitBtn").addEventListener("click", () => {
         const url = document.getElementById("urlInput").value;
-        ipcRenderer.send("trigger-chrome", url);
+        ipcRenderer.send("register-url", url);
       });
     </script>
   </body>
