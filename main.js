@@ -5,19 +5,39 @@ const path = require("path");
 let widgetWindow = null;
 let popupWindow = null;
 let wss;
+let managedUrls = []; //관리 중인 사이트 목록
 
 function startServer() {
-  wss = new WebSocket.Server({ port: 8080 });
+  wss = new WebSocket.Server({ port: 9999 });
 
   wss.on("connection", (ws) => {
-    console.log("[Electron] 크롬 익스텐션 연결");
+    console.log("[Electron] chrome extension connected");
+
+    //chrome extension에 관리 중인 사이트 목록 전송
+    //임시. TODO : 관리 방법.
+    if (managedUrls.length > 0) {
+      ws.send(JSON.stringify({
+        type: 'SYNC_DATA',
+        managedUrls: managedUrls
+      }));
+    }
 
     ws.on("close", () => {
-      console.log("[Electron] 연결 끊김");
+      console.log("[Electron] connection closed");
     });
   });
 }
 
+function broadcast(data) {
+  if (!wss) return;
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+// 위젯
 function createWidgetWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
@@ -35,7 +55,9 @@ function createWidgetWindow() {
     resizable: false,
     skipTaskbar: true,
     webPreferences: {
-      preload: __dirname + "/preload.js",
+      //preload: __dirname + "/preload.js",
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 
@@ -87,17 +109,23 @@ ipcMain.on("open-popup", () => {
   createPopupWindow();
 });
 
-/* 웹소켓 */
-function sendCommandToChrome(url) {
-  if (!wss) return;
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: "OPEN_TAB", url: url }));
-    }
-  });
-}
+ipcMain.on("register-url", (event, url) => {
+  if (!managedUrls.includes(url)) {
+    managedUrls.push(url);
+    console.log(`URL 등록됨: ${url}`);
+
+    broadcast({
+      type: 'SYNC_DATA',
+      managedUrls: managedUrls
+    });
+  }
+  if (popupWindow) popupWindow.close();
+});
 
 ipcMain.on("trigger-chrome", (event, url) => {
   console.log(`[Electron] 명령 전송: ${url}`);
-  sendCommandToChrome(url);
+  broadcast({
+    type: 'OPEN_TAB',
+    url: url
+  });
 });
